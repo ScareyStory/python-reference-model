@@ -1,0 +1,481 @@
+{
+  "schemaVersion": 1,
+  "misconceptions": {
+    "A1": "Assigning one name to another makes an independent copy of the list.",
+    "A2": "Two names for the same object are linked, so rebinding one name also moves the other.",
+    "A3": "Two lists with equal contents are the same object."
+  },
+  "prompts": {
+    "explainMismatch": "In your own words, why did it behave this way?",
+    "explainMatch": "In your own words, why did it behave this way? What would you tell someone who guessed differently?",
+    "fillerFeedback": "That is not one of the common patterns we have seen. Step through the diagram and compare it with your answer line by line."
+  },
+  "snippets": [
+    {
+      "id": "u1-s1",
+      "unit": 1,
+      "order": 1,
+      "title": "Two names, one list",
+      "targets": ["A1"],
+      "code": [
+        "a = [1, 2]",
+        "b = a",
+        "b.append(3)",
+        "print(a)"
+      ],
+      "names": ["a", "b"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "[1, 2, 3]", "correct": true, "tag": null },
+          { "id": "p2", "text": "[1, 2]", "correct": false, "tag": "A1" },
+          { "id": "p3", "text": "[3]", "correct": false, "tag": null }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a and b refer to the same list", "groups": [["a", "b"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a and b refer to two separate lists", "groups": [["a"], ["b"]], "correct": false, "tag": "A1" }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [1, 2] is created and the name a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["b"], "objects": [] },
+          "caption": "b is a second name for the same list. No new list is created."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2, 3] } },
+          "changed": { "names": [], "objects": ["o1"] },
+          "caption": "append changes the list in place. Both names point to that one list, so both see the change."
+        },
+        {
+          "line": 4,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2, 3] } },
+          "changed": { "names": [], "objects": [] },
+          "output": "[1, 2, 3]",
+          "caption": "print(a) shows the list a points to."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. There is only one list, and a and b are two names for it.",
+        "byTag": {
+          "A1": {
+            "thought": "You may have pictured b = a as making a separate copy of the list, so changing b would leave a alone.",
+            "why": "That is a natural reading. In everyday life, writing down a value in a second place gives you a second copy.",
+            "model": "In Python, b = a makes b another name for the same list. There is still only one list, so appending through b changes what a sees."
+          }
+        }
+      }
+    },
+    {
+      "id": "u1-s2",
+      "unit": 1,
+      "order": 2,
+      "title": "Rebinding a name",
+      "targets": ["A2"],
+      "code": [
+        "a = [1, 2]",
+        "b = a",
+        "b = [9]",
+        "print(a)"
+      ],
+      "names": ["a", "b"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "[1, 2]", "correct": true, "tag": null },
+          { "id": "p2", "text": "[9]", "correct": false, "tag": "A2" },
+          { "id": "p3", "text": "[1, 2, 9]", "correct": false, "tag": null }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a and b refer to two separate lists", "groups": [["a"], ["b"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a and b still refer to the same list", "groups": [["a", "b"]], "correct": false, "tag": "A2" }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [1, 2] is created and the name a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["b"], "objects": [] },
+          "caption": "b is a second name for the same list."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [9] }
+          },
+          "changed": { "names": ["b"], "objects": ["o2"] },
+          "caption": "A new list [9] is created and b is moved to point at it. a still points at the original list."
+        },
+        {
+          "line": 4,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [9] }
+          },
+          "changed": { "names": [], "objects": [] },
+          "output": "[1, 2]",
+          "caption": "print(a) shows the list a points to, which was never changed."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. Assigning to b only moves the name b. The list a points to is untouched.",
+        "byTag": {
+          "A2": {
+            "thought": "You may have thought that after b = a the two names stay tied together, so giving b a new list moves a as well.",
+            "why": "Because b = a made them share a list, it is easy to treat the two names as linked.",
+            "model": "Names are labels, not links. b = [9] points b at a brand-new list, and a still points at the original [1, 2]. Only changing the shared list itself (like append) is seen through both names."
+          }
+        }
+      }
+    },
+    {
+      "id": "u1-s3",
+      "unit": 1,
+      "order": 3,
+      "title": "A chain of names",
+      "targets": ["A1"],
+      "code": [
+        "a = [10, 20]",
+        "b = a",
+        "c = b",
+        "c[0] = 99",
+        "print(a)"
+      ],
+      "names": ["a", "b", "c"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "[99, 20]", "correct": true, "tag": null },
+          { "id": "p2", "text": "[10, 20]", "correct": false, "tag": "A1" },
+          { "id": "p3", "text": "[10, 99]", "correct": false, "tag": null }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a, b, and c all refer to the same list", "groups": [["a", "b", "c"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a, b, and c each refer to their own list", "groups": [["a"], ["b"], ["c"]], "correct": false, "tag": "A1" },
+          { "id": "g3", "text": "a and b refer to the same list, and c refers to a different one", "groups": [["a", "b"], ["c"]], "correct": false, "tag": null }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [10, 20] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [10, 20] is created and a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [10, 20] } },
+          "changed": { "names": ["b"], "objects": [] },
+          "caption": "b is another name for the same list."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o1", "c": "o1" },
+          "objects": { "o1": { "type": "list", "items": [10, 20] } },
+          "changed": { "names": ["c"], "objects": [] },
+          "caption": "c = b gives c the object b points to, which is the same list again. Three names, one list."
+        },
+        {
+          "line": 4,
+          "bindings": { "a": "o1", "b": "o1", "c": "o1" },
+          "objects": { "o1": { "type": "list", "items": [99, 20] } },
+          "changed": { "names": [], "objects": ["o1"] },
+          "caption": "c[0] = 99 changes the first item of the list in place. Every name pointing at that list sees the change."
+        },
+        {
+          "line": 5,
+          "bindings": { "a": "o1", "b": "o1", "c": "o1" },
+          "objects": { "o1": { "type": "list", "items": [99, 20] } },
+          "changed": { "names": [], "objects": [] },
+          "output": "[99, 20]",
+          "caption": "print(a) shows the list a points to."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. All three names point to one list, so a change made through c is visible through a.",
+        "byTag": {
+          "A1": {
+            "thought": "You may have thought each assignment (b = a, then c = b) made a fresh copy, so changing c could not affect a.",
+            "why": "It is natural to expect that passing a value along keeps the original safe. With a short chain of names the copying idea feels even more plausible.",
+            "model": "Assignment never copies the list. Each of b = a and c = b just adds another name for the same object, so c[0] = 99 is visible through all three names."
+          }
+        }
+      }
+    },
+    {
+      "id": "u1-s4",
+      "unit": 1,
+      "order": 4,
+      "title": "Changing versus rebinding",
+      "targets": ["A2", "A1"],
+      "code": [
+        "a = [1, 2]",
+        "b = a",
+        "b.append(3)",
+        "b = [7]",
+        "print(a)"
+      ],
+      "names": ["a", "b"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "[1, 2, 3]", "correct": true, "tag": null },
+          { "id": "p2", "text": "[7]", "correct": false, "tag": "A2" },
+          { "id": "p3", "text": "[1, 2]", "correct": false, "tag": "A1" }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a and b refer to two separate lists", "groups": [["a"], ["b"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a and b still refer to the same list", "groups": [["a", "b"]], "correct": false, "tag": "A2" }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["b"], "objects": [] },
+          "caption": "b is another name for the same list."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2, 3] } },
+          "changed": { "names": [], "objects": ["o1"] },
+          "caption": "append changes the shared list in place, so a and b both see [1, 2, 3]."
+        },
+        {
+          "line": 4,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2, 3] },
+            "o2": { "type": "list", "items": [7] }
+          },
+          "changed": { "names": ["b"], "objects": ["o2"] },
+          "caption": "b = [7] creates a new list and moves only the name b to it. a is left pointing at the original list."
+        },
+        {
+          "line": 5,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2, 3] },
+            "o2": { "type": "list", "items": [7] }
+          },
+          "changed": { "names": [], "objects": [] },
+          "output": "[1, 2, 3]",
+          "caption": "print(a) shows the original list, which kept the appended 3."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. The append changed the shared list, but the later b = [7] only moved the name b.",
+        "byTag": {
+          "A1": {
+            "thought": "You may have pictured b = a as a copy, so the append would only change b's list.",
+            "why": "If b were a separate copy, a would indeed stay [1, 2]. That is the natural reading of the equals sign.",
+            "model": "b = a shares one list, so the append on line 3 changes what a sees. Only the later b = [7] separates the two names."
+          },
+          "A2": {
+            "thought": "You may have thought that giving b a new list also moves a, because the two names were tied together.",
+            "why": "After b = a it is easy to treat the names as linked, since changes through one showed up in the other.",
+            "model": "Changing the shared list (append) is seen through both names. Rebinding (b = [7]) moves only the name b. The two actions behave differently."
+          }
+        }
+      }
+    },
+    {
+      "id": "u1-s5",
+      "unit": 1,
+      "order": 5,
+      "title": "Equal is not the same",
+      "targets": ["A3"],
+      "preface": "In Python, == asks whether two values have equal contents, and is asks whether two names refer to the very same object.",
+      "code": [
+        "a = [1, 2]",
+        "b = [1, 2]",
+        "print(a == b, a is b)"
+      ],
+      "names": ["a", "b"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "True False", "correct": true, "tag": null },
+          { "id": "p2", "text": "True True", "correct": false, "tag": "A3" },
+          { "id": "p3", "text": "False False", "correct": false, "tag": null }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a and b refer to two separate lists that happen to be equal", "groups": [["a"], ["b"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a and b refer to the same list", "groups": [["a", "b"]], "correct": false, "tag": "A3" }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [1, 2] }
+          },
+          "changed": { "names": ["b"], "objects": ["o2"] },
+          "caption": "Writing [1, 2] again creates a second, separate list. It has the same contents, but it is a different object."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [1, 2] }
+          },
+          "changed": { "names": [], "objects": [] },
+          "output": "True False",
+          "caption": "a == b is True because the contents are equal. a is b is False because the names point at different objects."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. The two lists are equal, but they are two separate objects.",
+        "byTag": {
+          "A3": {
+            "thought": "You may have reasoned that two lists with the same contents are the same thing, so is would also say True.",
+            "why": "In everyday life, two identical-looking things are often treated as one. And == really does say True here.",
+            "model": "== compares contents. is asks whether two names point to the very same object. Writing [1, 2] twice creates two separate lists that happen to be equal."
+          }
+        }
+      }
+    },
+    {
+      "id": "u1-s6",
+      "unit": 1,
+      "order": 6,
+      "title": "Alias, copy, and equal",
+      "targets": ["A3", "A1"],
+      "preface": "In Python, == asks whether two values have equal contents, and is asks whether two names refer to the very same object. The expression a[:] makes a new list with the same items as a.",
+      "code": [
+        "a = [1, 2]",
+        "b = a",
+        "c = a[:]",
+        "print(a == c, a is b, a is c)"
+      ],
+      "names": ["a", "b", "c"],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          { "id": "p1", "text": "True True False", "correct": true, "tag": null },
+          { "id": "p2", "text": "True True True", "correct": false, "tag": "A3" },
+          { "id": "p3", "text": "True False False", "correct": false, "tag": "A1" }
+        ]
+      },
+      "predictB": {
+        "prompt": "When the program finishes, which names refer to the same object?",
+        "options": [
+          { "id": "g1", "text": "a and b refer to the same list, and c refers to a different list", "groups": [["a", "b"], ["c"]], "correct": true, "tag": null },
+          { "id": "g2", "text": "a, b, and c all refer to the same list", "groups": [["a", "b", "c"]], "correct": false, "tag": "A3" },
+          { "id": "g3", "text": "a, b, and c each refer to their own list", "groups": [["a"], ["b"], ["c"]], "correct": false, "tag": "A1" }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": { "a": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["a"], "objects": ["o1"] },
+          "caption": "A new list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 2,
+          "bindings": { "a": "o1", "b": "o1" },
+          "objects": { "o1": { "type": "list", "items": [1, 2] } },
+          "changed": { "names": ["b"], "objects": [] },
+          "caption": "b = a adds a second name for the same list. No copy is made."
+        },
+        {
+          "line": 3,
+          "bindings": { "a": "o1", "b": "o1", "c": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [1, 2] }
+          },
+          "changed": { "names": ["c"], "objects": ["o2"] },
+          "caption": "a[:] builds a new list with the same items, and c points to that new list."
+        },
+        {
+          "line": 4,
+          "bindings": { "a": "o1", "b": "o1", "c": "o2" },
+          "objects": {
+            "o1": { "type": "list", "items": [1, 2] },
+            "o2": { "type": "list", "items": [1, 2] }
+          },
+          "changed": { "names": [], "objects": [] },
+          "output": "True True False",
+          "caption": "a == c is True (equal contents). a is b is True (same object). a is c is False (different objects)."
+        }
+      ],
+      "feedback": {
+        "correct": "Right. b is another name for a's list, while c is a separate list that happens to be equal.",
+        "byTag": {
+          "A1": {
+            "thought": "You may have pictured b = a as making a copy, so that a is b would be False.",
+            "why": "It is natural to expect an equals sign to copy, especially in a snippet that also contains a real copy.",
+            "model": "b = a makes no copy: a and b point at the same list. Only c = a[:] makes a new list."
+          },
+          "A3": {
+            "thought": "You may have reasoned that c has the same contents as a, so it must be the same list.",
+            "why": "Equal contents make == True, and that can feel like the same thing as being identical.",
+            "model": "c = a[:] built a new list. It is equal to a, but it is a different object, so a is c is False."
+          }
+        }
+      }
+    }
+  ]
+}
