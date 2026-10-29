@@ -101,11 +101,25 @@ function showStart() {
     el(
       "div",
       { class: "panel" },
-      // TODO: replace with the orientation text (what this teaches, what you should already know).
       el("p", {
-        text: "This module is for people who know basic Python. In each snippet you will predict what happens, watch a diagram of what Python actually does, and explain the result in your own words.",
+        text: "This unit is about how Python behaves when two variables refer to the same object.",
       }),
-      el("p", { text: `There are ${total()} short snippets in this unit.` })
+      el("p", {
+        text: "You should already be comfortable with variables, assignment, lists, and calling functions. You do not need anything beyond that.",
+      }),
+      el("h3", { text: "How each snippet works" }),
+      el(
+        "ol",
+        {},
+        el("li", { text: "Read a short piece of Python code." }),
+        el("li", { text: "Predict what it prints and which names share an object. Commit to your answer before you see the result." }),
+        el("li", { text: "Step through the code and view a diagram of how Python actually handles the objects." }),
+        el("li", { text: "Compare your prediction with what happened, then explain the result in your own words." })
+      ),
+      el("p", {
+        text: "Wrong predictions are expected and are the point. They show where your mental model differs from Python's. Your answers are not graded, and your explanations stay in your browser and are not saved.",
+      }),
+      el("p", { text: `There are ${total()} short snippets in this unit. Plan for about 10 minutes.` })
     ),
     el("button", { onclick: startSnippet, text: "Start" })
   );
@@ -338,8 +352,8 @@ function showDone() {
     el("li", { text: `Snippet ${k + 1}: output ${r.aOk ? "matched" : "differed"}, object sharing ${r.bOk ? "matched" : "differed"}` })
   );
   setView(
-    el("h2", { text: "Unit 1 complete" }),
-    el("p", { text: "Here is how your predictions compared with what Python does. This summary is not saved." }),
+    el("h2", { text: "Unit complete" }),
+    el("p", { text: "Here is how your predictions compare with how Python actually behaves. This summary is not saved." }),
     el("ul", { class: "summary" }, ...items),
     el("button", { text: "Start over", onclick: showStart })
   );
