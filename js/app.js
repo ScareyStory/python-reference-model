@@ -102,7 +102,7 @@ function showStart() {
       "div",
       { class: "panel" },
       el("p", {
-        text: "This unit is about how Python behaves when two variables refer to the same object.",
+        text: "This unit is about how Python behaves when two variables refer to the same object, and how changes modify them.",
       }),
       el("p", {
         text: "You should already be comfortable with variables, assignment, lists, and calling functions. You do not need anything beyond that.",

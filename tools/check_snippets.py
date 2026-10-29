@@ -19,6 +19,51 @@ def partition_of(ns, names):
     return sorted(sorted(g) for g in by_id.values())
 
 
+def check_every_step(s, err):
+    """Run the code one line at a time and compare every step with real Python.
+
+    After each line we check: which names exist, which names share an object,
+    what each object contains, and what (if anything) was printed.
+    Assumes each code line is a complete statement (true for the straight-line
+    Unit 1 snippets). Function calls and multi-line statements need a tracer.
+    """
+    ns = {}
+    for k, (line, st) in enumerate(zip(s["code"], s["steps"]), start=1):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            exec(compile(line, f"<{s['id']} line {k}>", "exec"), ns)
+        printed = buf.getvalue().strip()
+
+        defined = [n for n in s["names"] if n in ns]
+        shown = [n for n in s["names"] if n in st["bindings"]]
+        if sorted(defined) != sorted(shown):
+            err(f"step {k}: diagram shows names {sorted(shown)} but Python has {sorted(defined)}")
+            continue
+
+        real_groups = partition_of(ns, defined)
+        by_obj = {}
+        for n in shown:
+            by_obj.setdefault(st["bindings"][n], []).append(n)
+        step_groups = sorted(sorted(g) for g in by_obj.values())
+        if step_groups != real_groups:
+            err(f"step {k}: diagram groups {step_groups} but Python groups {real_groups}")
+
+        if set(st["objects"]) != set(st["bindings"].values()):
+            err(f"step {k}: objects drawn {sorted(st['objects'])} are not exactly the objects names point to")
+
+        for n in shown:
+            obj = st["objects"].get(st["bindings"][n])
+            if obj is None:
+                continue
+            if obj["type"] != type(ns[n]).__name__:
+                err(f"step {k}: {n} is drawn as {obj['type']} but is {type(ns[n]).__name__}")
+            if obj.get("items") != ns[n]:
+                err(f"step {k}: {n} drawn as {obj.get('items')} but Python has {ns[n]}")
+
+        if st.get("output") != (printed if printed else None):
+            err(f"step {k}: output is {st.get('output')!r} but Python printed {printed!r}")
+
+
 def check_snippet(s, miscs, errors):
     sid = s.get("id", "?")
 
@@ -55,6 +100,10 @@ def check_snippet(s, miscs, errors):
         for name, oid in st["bindings"].items():
             if oid not in st["objects"]:
                 err(f"step {i}: name {name} points to missing object {oid}")
+
+    # every intermediate step against real Python
+    if len(s["steps"]) == len(s["code"]):
+        check_every_step(s, err)
 
     # run the real code
     ns = {}
@@ -99,7 +148,8 @@ def main(path):
         for e in errors:
             print(" -", e)
         sys.exit(1)
-    print(f"OK: {len(data['snippets'])} snippets passed.")
+    n_steps = sum(len(s["steps"]) for s in data["snippets"])
+    print(f"OK: {len(data['snippets'])} snippets passed; {n_steps} diagram steps checked against real Python.")
 
 
 if __name__ == "__main__":
