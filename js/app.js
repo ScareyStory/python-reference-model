@@ -102,7 +102,7 @@ function showStart() {
       "div",
       { class: "panel" },
       el("p", {
-        text: "This unit is about how Python behaves when two variables refer to the same object, and how changes modify them.",
+        text: "This unit is about how Python behaves when two variables refer to the same object.",
       }),
       el("p", {
         text: "You should already be comfortable with variables, assignment, lists, and calling functions. You do not need anything beyond that.",
@@ -347,14 +347,53 @@ function renderFeedback(ev) {
   );
 }
 
+// A mark that does not rely on colour alone: symbol + word.
+function mark(ok) {
+  return el("span", { class: ok ? "ok" : "no", text: ok ? "✓ Correct" : "✗ Incorrect" });
+}
+
 function showDone() {
-  const items = state.results.map((r, k) =>
-    el("li", { text: `Snippet ${k + 1}: output ${r.aOk ? "matched" : "differed"}, object sharing ${r.bOk ? "matched" : "differed"}` })
-  );
+  const unitNames = state.data.units || {};
+
+  // Group results by unit, keeping the order the snippets were played in.
+  const groups = [];
+  state.results.forEach((r, k) => {
+    const sn = state.data.snippets.find((s) => s.id === r.id);
+    let g = groups.find((x) => x.unit === sn.unit);
+    if (!g) {
+      g = { unit: sn.unit, rows: [] };
+      groups.push(g);
+    }
+    g.rows.push({ k, r, sn });
+  });
+
+  const sections = groups.map((g) => {
+    const desc = unitNames[g.unit];
+    const items = g.rows.map(({ k, r, sn }) =>
+      el(
+        "li",
+        {},
+        el("strong", { text: `Snippet ${k + 1}: ${sn.title}` }),
+        el(
+          "ul",
+          { class: "results" },
+          el("li", {}, "Output prediction: ", mark(r.aOk)),
+          el("li", {}, "Object sharing prediction: ", mark(r.bOk))
+        )
+      )
+    );
+    return el(
+      "section",
+      { class: "unit-summary" },
+      el("h3", { text: desc ? `Unit ${g.unit}: ${desc}` : `Unit ${g.unit}` }),
+      el("ul", { class: "summary" }, ...items)
+    );
+  });
+
   setView(
     el("h2", { text: "Unit complete" }),
     el("p", { text: "Here is how your predictions compare with how Python actually behaves. This summary is not saved." }),
-    el("ul", { class: "summary" }, ...items),
+    ...sections,
     el("button", { text: "Start over", onclick: showStart })
   );
 }

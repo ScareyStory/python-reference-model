@@ -177,4 +177,7 @@ textarea {
 
 .error { color: var(--bad); font-weight: 600; }
 .your-explanation { font-style: italic; margin: 4px 0; white-space: pre-wrap; }
-ul.summary { padding-left: 20px; }
+ul.summary { list-style: none; padding: 0; margin: 8px 0; }
+ul.summary > li { margin: 0 0 14px; }
+ul.results { list-style: none; margin: 4px 0 0; padding-left: 16px; }
+ul.results li { margin: 2px 0; }
