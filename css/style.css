@@ -143,6 +143,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, .skip:focus-v
 .diagram-svg .obj-label { fill: var(--muted); font: 13px system-ui, sans-serif; }
 .diagram-svg .arrow { fill: none; stroke: var(--fg); stroke-width: 1.6; }
 .diagram-svg .arrow-head { fill: var(--fg); }
+.diagram-svg .dot { fill: var(--fg); }
 .diagram-svg .changed .name-box,
 .diagram-svg .changed .cell { stroke: var(--changed); stroke-width: 3.5; }
 .diagram-svg .arrow.changed { stroke: var(--changed); stroke-width: 3; }

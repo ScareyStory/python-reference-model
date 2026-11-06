@@ -60,10 +60,12 @@ const snippet = () => state.data.snippets[state.i];
 const total = () => state.data.snippets.length;
 
 function progressNode() {
+  const unitName = (state.data.units || {})[snippet().unit];
+  const unitLabel = unitName ? `Unit ${snippet().unit}: ${unitName} \u00b7 ` : "";
   return el(
     "p",
     { class: "progress" },
-    `Snippet ${state.i + 1} of ${total()}`,
+    `${unitLabel}Snippet ${state.i + 1} of ${total()}`,
     el("progress", { max: total(), value: state.i + 1, "aria-label": "Progress through the unit" })
   );
 }
@@ -93,6 +95,13 @@ function optionById(list, id) {
 
 // ---------- screens ----------
 
+function countText() {
+  const units = new Set(state.data.snippets.map((s) => s.unit)).size;
+  const minutes = Math.max(5, Math.round((total() * 10) / 6 / 5) * 5);
+  const where = units === 1 ? "in this unit" : `across ${units} units`;
+  return `There are ${total()} short snippets ${where}. Plan for about ${minutes} minutes.`;
+}
+
 function showStart() {
   state.i = 0;
   state.results = [];
@@ -102,7 +111,7 @@ function showStart() {
       "div",
       { class: "panel" },
       el("p", {
-        text: "This unit is about how Python behaves when two variables refer to the same object.",
+        text: "This module is about how Python behaves when names refer to objects: what happens when two names share one object, and what changes (and what does not) when an object can or cannot be changed.",
       }),
       el("p", {
         text: "You should already be comfortable with variables, assignment, lists, and calling functions. You do not need anything beyond that.",
@@ -119,7 +128,7 @@ function showStart() {
       el("p", {
         text: "Wrong predictions are expected and are the point. They show where your mental model differs from Python's. Your answers are not graded, and your explanations stay in your browser and are not saved.",
       }),
-      el("p", { text: `There are ${total()} short snippets in this unit. Plan for about 10 minutes.` })
+      el("p", { text: countText() })
     ),
     el("button", { onclick: startSnippet, text: "Start" })
   );
@@ -327,7 +336,7 @@ function renderFeedback(ev) {
 
   const isLast = state.i === total() - 1;
   const nextBtn = el("button", {
-    text: isLast ? "Finish unit" : "Next snippet",
+    text: isLast ? "Finish" : "Next snippet",
     onclick: () => {
       if (isLast) showDone();
       else {
@@ -391,7 +400,7 @@ function showDone() {
   });
 
   setView(
-    el("h2", { text: "Unit complete" }),
+    el("h2", { text: groups.length > 1 ? "All units complete" : "Unit complete" }),
     el("p", { text: "Here is how your predictions compare with how Python actually behaves. This summary is not saved." }),
     ...sections,
     el("button", { text: "Start over", onclick: showStart })
