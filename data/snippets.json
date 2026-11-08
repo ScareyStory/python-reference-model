@@ -1235,13 +1235,14 @@
       "id": "u2-s1",
       "unit": 2,
       "order": 1,
-      "title": "A method that builds a new string",
+      "title": "Uppercasing a string that has an alias",
       "targets": [
         "A6"
       ],
       "code": [
         "s = \"abc\"",
-        "t = s.upper()",
+        "t = s",
+        "s = s.upper()",
         "print(s, t)"
       ],
       "names": [
@@ -1253,7 +1254,7 @@
         "options": [
           {
             "id": "p1",
-            "text": "abc ABC",
+            "text": "ABC abc",
             "correct": true,
             "tag": null
           },
@@ -1265,7 +1266,7 @@
           },
           {
             "id": "p3",
-            "text": "ABC abc",
+            "text": "abc abc",
             "correct": false,
             "tag": null
           }
@@ -1290,7 +1291,7 @@
           },
           {
             "id": "g2",
-            "text": "s and t refer to the same string",
+            "text": "s and t still refer to the same string",
             "groups": [
               [
                 "s",
@@ -1328,7 +1329,27 @@
           "line": 2,
           "bindings": {
             "s": "o1",
-            "t": "o2"
+            "t": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "str",
+              "value": "abc"
+            }
+          },
+          "changed": {
+            "names": [
+              "t"
+            ],
+            "objects": []
+          },
+          "caption": "t is another name for the same string."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "s": "o2",
+            "t": "o1"
           },
           "objects": {
             "o1": {
@@ -1342,19 +1363,19 @@
           },
           "changed": {
             "names": [
-              "t"
+              "s"
             ],
             "objects": [
               "o2"
             ]
           },
-          "caption": "upper() does not change s. It builds a new string \"ABC\", and t points to that."
+          "caption": "upper() does not change the string \"abc\". It builds a new string \"ABC\", and the assignment moves only s to it. t still points to \"abc\"."
         },
         {
-          "line": 3,
+          "line": 4,
           "bindings": {
-            "s": "o1",
-            "t": "o2"
+            "s": "o2",
+            "t": "o1"
           },
           "objects": {
             "o1": {
@@ -1370,17 +1391,17 @@
             "names": [],
             "objects": []
           },
-          "caption": "print shows the original string unchanged, next to the new uppercase one.",
-          "output": "abc ABC"
+          "caption": "print shows the new string for s and the original string for t.",
+          "output": "ABC abc"
         }
       ],
       "feedback": {
-        "correct": "Right. upper() builds a new string and leaves s alone, because strings cannot be changed in place.",
+        "correct": "Right. upper() builds a new string and s = s.upper() moves only s to it. t still points to the original, because strings cannot be changed in place.",
         "byTag": {
           "A6": {
-            "thought": "You may have thought s.upper() turns s itself into uppercase, so that s would now read ABC.",
-            "why": "That is a natural reading. A method call like upper() sounds like an action done to s, the way append is done to a list.",
-            "model": "Strings cannot be changed in place. s.upper() builds a brand new string, \"ABC\", and t points to it. s still points to the original \"abc\"."
+            "thought": "You may have thought s.upper() changes the string that s points to, so t, which shares that string, would read ABC as well.",
+            "why": "A method call like upper() sounds like an action done to the string itself, the way append is done to a list, and with a list the alias would see the change.",
+            "model": "Strings cannot be changed in place. s.upper() builds a brand new string, \"ABC\", and the assignment moves only s to it. t still points to the original \"abc\"."
           }
         }
       }
@@ -2113,7 +2134,7 @@
         "t = (1, lst)",
         "inner = t[1]",
         "lst.append(4)",
-        "print(t, inner)"
+        "print(t, inner, lst)"
       ],
       "names": [
         "lst",
@@ -2125,19 +2146,19 @@
         "options": [
           {
             "id": "p1",
-            "text": "(1, [2, 3, 4]) [2, 3, 4]",
+            "text": "(1, [2, 3, 4]) [2, 3, 4] [2, 3, 4]",
             "correct": true,
             "tag": null
           },
           {
             "id": "p2",
-            "text": "(1, [2, 3]) [2, 3, 4]",
+            "text": "(1, [2, 3]) [2, 3] [2, 3, 4]",
             "correct": false,
             "tag": "A9"
           },
           {
             "id": "p3",
-            "text": "(1, [2, 3]) [2, 3]",
+            "text": "(1, [2, 3, 4]) [2, 3] [2, 3, 4]",
             "correct": false,
             "tag": "A1"
           }
@@ -2351,22 +2372,22 @@
             "names": [],
             "objects": []
           },
-          "caption": "print shows the change through both t and inner.",
-          "output": "(1, [2, 3, 4]) [2, 3, 4]"
+          "caption": "print shows the change through t, inner and lst, because all three reach the same list.",
+          "output": "(1, [2, 3, 4]) [2, 3, 4] [2, 3, 4]"
         }
       ],
       "feedback": {
         "correct": "Right. The tuple holds a reference to the list, so lst and inner are the same list and the change shows through t.",
         "byTag": {
           "A9": {
-            "thought": "You may have thought a tuple can never change, so the list inside it would stay [2, 3] when lst changed.",
+            "thought": "You may have thought that because a tuple cannot change, the list inside it is frozen too, so t and inner would keep [2, 3] while only lst became [2, 3, 4].",
             "why": "Tuples do reject item assignment, so it is natural to treat everything inside one as frozen.",
-            "model": "A tuple's cells are fixed: they always point at the same objects. But the list in the second cell is a mutable object, and lst.append(4) changes that list. The tuple still points at it, so t now shows [2, 3, 4]."
+            "model": "A tuple's cells are fixed: they always point at the same objects. But the list in the second cell is a mutable object, and it is the very list lst points to. lst.append(4) changes it, so t shows [2, 3, 4], and so does inner."
           },
           "A1": {
-            "thought": "You may have pictured t = (1, lst) as copying the list into the tuple, so appending to lst would not reach it.",
-            "why": "Assignment can feel like copying, so it is natural to expect the tuple to hold its own copy.",
-            "model": "No copy is made. The tuple's second cell points at the same list as lst, and inner = t[1] gives a third name for that list."
+            "thought": "You may have thought inner = t[1] makes a copy of the list, so inner would keep [2, 3] while the tuple and lst show the change.",
+            "why": "Assignment can feel like copying, so it is natural to expect inner to be its own list.",
+            "model": "No copy is made. t[1] is the same list that lst points to, so inner = t[1] gives a third name for that list. Appending through lst shows up through t and inner alike."
           }
         }
       }
