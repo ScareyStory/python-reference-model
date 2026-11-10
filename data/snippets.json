@@ -2,7 +2,8 @@
   "schemaVersion": 1,
   "units": {
     "1": "Aliasing",
-    "2": "Mutable and immutable objects"
+    "2": "Mutable and immutable objects",
+    "3": "Function arguments"
   },
   "misconceptions": {
     "A1": "Assigning one name to another makes an independent copy of the list.",
@@ -2388,6 +2389,1548 @@
             "thought": "You may have thought inner = t[1] makes a copy of the list, so inner would keep [2, 3] while the tuple and lst show the change.",
             "why": "Assignment can feel like copying, so it is natural to expect inner to be its own list.",
             "model": "No copy is made. t[1] is the same list that lst points to, so inner = t[1] gives a third name for that list. Appending through lst shows up through t and inner alike."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s1",
+      "unit": 3,
+      "order": 1,
+      "title": "Changing a list through a parameter",
+      "targets": [
+        "A4"
+      ],
+      "scopes": true,
+      "code": [
+        "def add_item(items):",
+        "    items.append(3)",
+        "a = [1, 2]",
+        "add_item(a)",
+        "print(a)"
+      ],
+      "names": [
+        "a"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "[1, 2, 3]",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "[1, 2]",
+            "correct": false,
+            "tag": "A4"
+          },
+          {
+            "id": "p3",
+            "text": "[3]",
+            "correct": false,
+            "tag": null
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "While add_item is running, which names refer to the same object?",
+        "names": [
+          "a",
+          "items"
+        ],
+        "atStep": 3,
+        "options": [
+          {
+            "id": "g1",
+            "text": "a and items refer to the same list",
+            "groups": [
+              [
+                "a",
+                "items"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "a and items refer to two separate lists",
+            "groups": [
+              [
+                "a"
+              ],
+              [
+                "items"
+              ]
+            ],
+            "correct": false,
+            "tag": "A4"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function add_item. Nothing inside it runs yet."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "a"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "add_item",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The call add_item(a) starts. The parameter items becomes another name for the very list a points to. No copy is made."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "add_item",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o1"
+            ],
+            "frameNames": []
+          },
+          "caption": "append changes the list in place. Both a and items point to it, so both see [1, 2, 3]."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The call returns and the function's names disappear. The list stays, still changed."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(a) shows the change that was made inside the function.",
+          "output": "[1, 2, 3]"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. The parameter items is another name for a's list, so the append changed the list that a sees.",
+        "byTag": {
+          "A4": {
+            "thought": "You may have thought the function gets its own copy of a's list, so the append would not reach a.",
+            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "model": "The parameter items is just another name for the same list. There is no copy, so the append changes the list that a points to."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s2",
+      "unit": 3,
+      "order": 2,
+      "title": "Two aliases and a function",
+      "targets": [
+        "A4"
+      ],
+      "scopes": true,
+      "code": [
+        "def reset_first(items):",
+        "    items[0] = 0",
+        "a = [5, 6]",
+        "b = a",
+        "reset_first(b)",
+        "print(a)"
+      ],
+      "names": [
+        "a",
+        "b"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "[0, 6]",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "[5, 6]",
+            "correct": false,
+            "tag": "A4"
+          },
+          {
+            "id": "p3",
+            "text": "[0]",
+            "correct": false,
+            "tag": null
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "While reset_first is running, which names refer to the same object?",
+        "names": [
+          "a",
+          "b",
+          "items"
+        ],
+        "atStep": 4,
+        "options": [
+          {
+            "id": "g1",
+            "text": "a, b and items all refer to the same list",
+            "groups": [
+              [
+                "a",
+                "b",
+                "items"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "a and b share a list, but items refers to a separate copy",
+            "groups": [
+              [
+                "a",
+                "b"
+              ],
+              [
+                "items"
+              ]
+            ],
+            "correct": false,
+            "tag": "A4"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function reset_first."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                5,
+                6
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "a"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The list [5, 6] is created and a points to it."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1",
+            "b": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                5,
+                6
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "b"
+            ],
+            "objects": []
+          },
+          "caption": "b is another name for the same list."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1",
+            "b": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                5,
+                6
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "reset_first",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The call reset_first(b) starts. The parameter items joins a and b as a third name for the same list."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1",
+            "b": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                6
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "reset_first",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o1"
+            ],
+            "frameNames": []
+          },
+          "caption": "items[0] = 0 changes the first cell of the shared list. All three names see [0, 6]."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1",
+            "b": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                6
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The call returns and items disappears. a and b still point to the list, now [0, 6]."
+        },
+        {
+          "line": 6,
+          "bindings": {
+            "a": "o1",
+            "b": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                6
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(a) shows the change made inside the function.",
+          "output": "[0, 6]"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. items is a third name for the same list, so changing items[0] changes what a and b see.",
+        "byTag": {
+          "A4": {
+            "thought": "You may have thought the function works on its own copy of the list, so the change to the first cell would not reach a.",
+            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "model": "The parameter items is another name for the list that a and b point to. No copy is made, so changing items[0] changes the one shared list."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s3",
+      "unit": 3,
+      "order": 3,
+      "title": "Calling a function twice",
+      "targets": [
+        "A4"
+      ],
+      "scopes": true,
+      "code": [
+        "def grow(items):",
+        "    items.append(len(items))",
+        "a = [0]",
+        "grow(a)",
+        "grow(a)",
+        "print(a)"
+      ],
+      "names": [
+        "a"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "[0, 1, 2]",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "[0]",
+            "correct": false,
+            "tag": "A4"
+          },
+          {
+            "id": "p3",
+            "text": "[0, 1]",
+            "correct": false,
+            "tag": null
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "While grow is running, which names refer to the same object? (first call)",
+        "names": [
+          "a",
+          "items"
+        ],
+        "atStep": 3,
+        "options": [
+          {
+            "id": "g1",
+            "text": "a and items refer to the same list",
+            "groups": [
+              [
+                "a",
+                "items"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "a and items refer to two separate lists",
+            "groups": [
+              [
+                "a"
+              ],
+              [
+                "items"
+              ]
+            ],
+            "correct": false,
+            "tag": "A4"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function grow."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "a"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The list [0] is created and a points to it."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "grow",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The first call starts. items is another name for a's list."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "grow",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o1"
+            ],
+            "frameNames": []
+          },
+          "caption": "len(items) is 1, so append adds 1 to the shared list. It is now [0, 1]."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The first call returns. The list a points to is now [0, 1]."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "grow",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The second call starts. items is again another name for the same list."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1,
+                2
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "grow",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o1"
+            ],
+            "frameNames": []
+          },
+          "caption": "len(items) is now 2, so append adds 2. The list is now [0, 1, 2]."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The second call returns. Both calls changed the same list."
+        },
+        {
+          "line": 6,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                0,
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(a) shows the changes from both calls.",
+          "output": "[0, 1, 2]"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. Each call gets another name for the same list, so both appends are seen through a.",
+        "byTag": {
+          "A4": {
+            "thought": "You may have thought each call works on its own copy of the list, so neither call could change a.",
+            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "model": "Each call gets another name for the same list. There is no copy, so both appends show up through a, and the second call sees the list the first call made longer."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s4",
+      "unit": 3,
+      "order": 4,
+      "title": "Rebinding a parameter",
+      "targets": [
+        "A5"
+      ],
+      "scopes": true,
+      "code": [
+        "def replace(items):",
+        "    items = [9]",
+        "a = [1, 2]",
+        "replace(a)",
+        "print(a)"
+      ],
+      "names": [
+        "a"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "[1, 2]",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "[9]",
+            "correct": false,
+            "tag": "A5"
+          },
+          {
+            "id": "p3",
+            "text": "[1, 2, 9]",
+            "correct": false,
+            "tag": null
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "Just after the line items = [9] runs, which names refer to the same object?",
+        "names": [
+          "a",
+          "items"
+        ],
+        "atStep": 4,
+        "options": [
+          {
+            "id": "g1",
+            "text": "a and items refer to two separate lists",
+            "groups": [
+              [
+                "a"
+              ],
+              [
+                "items"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "a and items still refer to the same list",
+            "groups": [
+              [
+                "a",
+                "items"
+              ]
+            ],
+            "correct": false,
+            "tag": "A5"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function replace."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "a"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "replace",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The call replace(a) starts. items is another name for a's list."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            },
+            "o2": {
+              "type": "list",
+              "items": [
+                9
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "replace",
+              "bindings": {
+                "items": "o2"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o2"
+            ],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "items = [9] builds a new list and moves only the name items to it. a still points to the original list."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The call returns and items disappears. Nothing points to [9] any more, and a still points to [1, 2]."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(a) shows the original list, which was never changed.",
+          "output": "[1, 2]"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. items = [9] only moved the name items, so a still points to [1, 2].",
+        "byTag": {
+          "A5": {
+            "thought": "You may have thought assigning to items inside the function also changes a, because items was standing for a.",
+            "why": "While the call runs, items and a really are the same list, so it is natural to treat items = [9] as changing it.",
+            "model": "Assigning to a parameter rebinds only that name inside the function. items = [9] builds a new list and points items at it, while a still points at the original list."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s5",
+      "unit": 3,
+      "order": 5,
+      "title": "Changing, then rebinding",
+      "targets": [
+        "A5",
+        "A4"
+      ],
+      "scopes": true,
+      "code": [
+        "def tweak(items):",
+        "    items.append(3)",
+        "    items = [9]",
+        "a = [1, 2]",
+        "tweak(a)",
+        "print(a)"
+      ],
+      "names": [
+        "a"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "[1, 2, 3]",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "[9]",
+            "correct": false,
+            "tag": "A5"
+          },
+          {
+            "id": "p3",
+            "text": "[1, 2]",
+            "correct": false,
+            "tag": "A4"
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "Just after the line items = [9] runs, which names refer to the same object?",
+        "names": [
+          "a",
+          "items"
+        ],
+        "atStep": 5,
+        "options": [
+          {
+            "id": "g1",
+            "text": "a and items refer to two separate lists",
+            "groups": [
+              [
+                "a"
+              ],
+              [
+                "items"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "a and items still refer to the same list",
+            "groups": [
+              [
+                "a",
+                "items"
+              ]
+            ],
+            "correct": false,
+            "tag": "A5"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function tweak."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "changed": {
+            "names": [
+              "a"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The list [1, 2] is created and a points to it."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "tweak",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "The call tweak(a) starts. items is another name for a's list."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "tweak",
+              "bindings": {
+                "items": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o1"
+            ],
+            "frameNames": []
+          },
+          "caption": "append changes the shared list in place, so a sees [1, 2, 3] too."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            },
+            "o2": {
+              "type": "list",
+              "items": [
+                9
+              ]
+            }
+          },
+          "frames": [
+            {
+              "name": "tweak",
+              "bindings": {
+                "items": "o2"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o2"
+            ],
+            "frameNames": [
+              "items"
+            ]
+          },
+          "caption": "items = [9] builds a new list and moves only items to it. The list a points to keeps its 3."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The call returns and items disappears. a still points to [1, 2, 3]."
+        },
+        {
+          "line": 6,
+          "bindings": {
+            "a": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "list",
+              "items": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(a) shows the effect of the append but not of the assignment.",
+          "output": "[1, 2, 3]"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. The append changed the shared list, but the later assignment only moved the name items.",
+        "byTag": {
+          "A5": {
+            "thought": "You may have thought assigning to items inside the function also changes a, so a would end up as [9].",
+            "why": "While the call runs, items and a really are the same list, so it is natural to treat items = [9] as changing it.",
+            "model": "Assigning to a parameter rebinds only that name inside the function. items = [9] points items at a new list, while a keeps the original list with its appended 3."
+          },
+          "A4": {
+            "thought": "You may have thought the function works on its own copy of the list, so the append would not reach a.",
+            "why": "A function having its own name for the list can feel like it has its own list.",
+            "model": "items starts out as another name for a's list, so the append is seen through a. Only the later assignment items = [9] separates the two names."
+          }
+        }
+      }
+    },
+    {
+      "id": "u3-s6",
+      "unit": 3,
+      "order": 6,
+      "title": "Adding to an int parameter",
+      "targets": [
+        "A5",
+        "A7"
+      ],
+      "scopes": true,
+      "code": [
+        "def bump(n):",
+        "    n += 1",
+        "x = 5",
+        "bump(x)",
+        "print(x)"
+      ],
+      "names": [
+        "x"
+      ],
+      "predictA": {
+        "prompt": "What does the program print?",
+        "options": [
+          {
+            "id": "p1",
+            "text": "5",
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "p2",
+            "text": "6",
+            "correct": false,
+            "tag": "A5"
+          },
+          {
+            "id": "p3",
+            "text": "an error",
+            "correct": false,
+            "tag": null
+          }
+        ]
+      },
+      "predictB": {
+        "prompt": "Just after the line n += 1 runs, which names refer to the same object?",
+        "names": [
+          "x",
+          "n"
+        ],
+        "atStep": 4,
+        "options": [
+          {
+            "id": "g1",
+            "text": "x and n refer to two different ints",
+            "groups": [
+              [
+                "x"
+              ],
+              [
+                "n"
+              ]
+            ],
+            "correct": true,
+            "tag": null
+          },
+          {
+            "id": "g2",
+            "text": "x and n still refer to the same int",
+            "groups": [
+              [
+                "x",
+                "n"
+              ]
+            ],
+            "correct": false,
+            "tag": "A7"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "line": 1,
+          "bindings": {},
+          "objects": {},
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "def only defines the function bump."
+        },
+        {
+          "line": 3,
+          "bindings": {
+            "x": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "int",
+              "value": 5
+            }
+          },
+          "changed": {
+            "names": [
+              "x"
+            ],
+            "objects": [
+              "o1"
+            ]
+          },
+          "caption": "The int 5 is created and x points to it."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "x": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "int",
+              "value": 5
+            }
+          },
+          "frames": [
+            {
+              "name": "bump",
+              "bindings": {
+                "n": "o1"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [],
+            "frameNames": [
+              "n"
+            ]
+          },
+          "caption": "The call bump(x) starts. n is another name for the same int 5."
+        },
+        {
+          "line": 2,
+          "bindings": {
+            "x": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "int",
+              "value": 5
+            },
+            "o2": {
+              "type": "int",
+              "value": 6
+            }
+          },
+          "frames": [
+            {
+              "name": "bump",
+              "bindings": {
+                "n": "o2"
+              }
+            }
+          ],
+          "changed": {
+            "names": [],
+            "objects": [
+              "o2"
+            ],
+            "frameNames": [
+              "n"
+            ]
+          },
+          "caption": "Ints cannot be changed in place, so += builds a new int 6 and moves only n to it. x still points to 5."
+        },
+        {
+          "line": 4,
+          "bindings": {
+            "x": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "int",
+              "value": 5
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "The call returns and n disappears. The 6 is gone and x still points to 5."
+        },
+        {
+          "line": 5,
+          "bindings": {
+            "x": "o1"
+          },
+          "objects": {
+            "o1": {
+              "type": "int",
+              "value": 5
+            }
+          },
+          "changed": {
+            "names": [],
+            "objects": []
+          },
+          "caption": "print(x) shows that the call did not change x.",
+          "output": "5"
+        }
+      ],
+      "feedback": {
+        "correct": "Right. += built a new int and moved only n, so x still sees 5.",
+        "byTag": {
+          "A5": {
+            "thought": "You may have thought n += 1 inside the function changes x, because n was standing for x.",
+            "why": "While the call runs, n and x really are the same int, so it is natural to expect a change to n to reach x.",
+            "model": "n += 1 builds a new int and rebinds only n. x still points to the original 5."
+          },
+          "A7": {
+            "thought": "You may have thought n += 1 adds one to the int that n shares with x.",
+            "why": "With a shared list, += changes the object itself, so it is natural to expect the same from an int.",
+            "model": "Ints cannot be changed in place. += builds a new int 6 and moves only n to it, so x and n no longer share an object."
           }
         }
       }

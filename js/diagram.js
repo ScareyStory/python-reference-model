@@ -64,12 +64,18 @@ function contentsText(obj, step) {
 // Plain-text version of a step, used for the visible text equivalent and aria-label.
 export function describeStep(step, nameOrder) {
   const parts = [];
-  for (const name of nameOrder) {
-    const oid = step.bindings[name];
-    if (oid === undefined) continue;
+  const sentence = (prefix, name, oid) => {
     const obj = step.objects[oid];
     const tail = obj ? contentsText(obj, step) : "";
-    parts.push(`${name} points to ${obj ? obj.type : "object"} ${idLabel(oid)} ${tail}`.trim());
+    parts.push(`${prefix}${name} points to ${obj ? obj.type : "object"} ${idLabel(oid)} ${tail}`.trim());
+  };
+  for (const name of nameOrder) {
+    const oid = step.bindings[name];
+    if (oid !== undefined) sentence("", name, oid);
+  }
+  // Names that exist only while a function call is running
+  for (const fr of step.frames || []) {
+    for (const [name, oid] of Object.entries(fr.bindings)) sentence(`Inside ${fr.name}(), `, name, oid);
   }
   return parts.length ? parts.join("; ") + "." : "No names are defined yet.";
 }
@@ -101,16 +107,43 @@ function orderObjects(step) {
   return placed;
 }
 
-export function renderDiagram(container, step, nameOrder) {
+// opts.scopes: label the global names and draw each running function call's names in a
+// labeled box below them (used by snippets that define functions).
+export function renderDiagram(container, step, nameOrder, opts = {}) {
   container.textContent = "";
 
-  const names = nameOrder.filter((n) => n in step.bindings);
+  const scopes = Boolean(opts.scopes);
+  const frames = step.frames || [];
   const objIds = orderObjects(step);
   const changedNames = new Set((step.changed && step.changed.names) || []);
+  const changedFrameNames = new Set((step.changed && step.changed.frameNames) || []);
   const changedObjs = new Set((step.changed && step.changed.objects) || []);
 
-  const height =
-    Math.max(L.top + names.length * L.namePitch, L.top + objIds.length * L.objPitch) + 8;
+  // Every name to draw, top to bottom: the global names, then the names of each running call.
+  const nameItems = [];
+  const globals = nameOrder.filter((n) => n in step.bindings);
+  globals.forEach((n, j) =>
+    nameItems.push({ name: n, oid: step.bindings[n], y: L.top + j * L.namePitch, changed: changedNames.has(n) })
+  );
+  const frameBoxes = [];
+  let namesExtent = L.top + globals.length * L.namePitch;
+  if (frames.length) {
+    let bottom = globals.length ? L.top + (globals.length - 1) * L.namePitch + L.nameH : L.top;
+    for (const fr of frames) {
+      const boxTop = bottom + 14;
+      const entries = Object.entries(fr.bindings);
+      const firstY = boxTop + 26;
+      entries.forEach(([n, oid], j) =>
+        nameItems.push({ name: n, oid, y: firstY + j * L.namePitch, changed: changedFrameNames.has(n) })
+      );
+      const lastBottom = entries.length ? firstY + (entries.length - 1) * L.namePitch + L.nameH : firstY;
+      frameBoxes.push({ label: `${fr.name}()`, top: boxTop, bottom: lastBottom + 10 });
+      bottom = lastBottom + 10;
+    }
+    namesExtent = bottom;
+  }
+
+  const height = Math.max(namesExtent, L.top + objIds.length * L.objPitch) + 8;
 
   const svg = s("svg", {
     viewBox: `0 0 ${L.width} ${height}`,
@@ -134,8 +167,6 @@ export function renderDiagram(container, step, nameOrder) {
   svg.appendChild(defs);
 
   // Positions
-  const nameY = {};
-  names.forEach((n, j) => (nameY[n] = L.top + j * L.namePitch));
   const objTop = {};
   objIds.forEach((id, i) => (objTop[id] = L.top + i * L.objPitch));
 
@@ -209,17 +240,32 @@ export function renderDiagram(container, step, nameOrder) {
     );
   }
 
+  // Scope labels and the box around a running call's names
+  if (scopes) svg.appendChild(s("text", { x: L.nameX, y: L.top - 10, class: "scope-label" }, "global"));
+  for (const fb of frameBoxes) {
+    svg.appendChild(
+      s("rect", {
+        x: L.nameX - 8,
+        y: fb.top,
+        width: L.nameW + 16,
+        height: fb.bottom - fb.top,
+        rx: 8,
+        class: "frame-box",
+      })
+    );
+    svg.appendChild(s("text", { x: L.nameX, y: fb.top + 17, class: "scope-label" }, fb.label));
+  }
+
   // Names and arrows
-  for (const n of names) {
-    const y = nameY[n];
-    const g = s("g", { class: "name" + (changedNames.has(n) ? " changed" : "") });
+  for (const item of nameItems) {
+    const { name: n, oid, y } = item;
+    const g = s("g", { class: "name" + (item.changed ? " changed" : "") });
     g.appendChild(s("rect", { x: L.nameX, y, width: L.nameW, height: L.nameH, rx: 17, class: "name-box" }));
     g.appendChild(
       s("text", { x: L.nameX + L.nameW / 2, y: y + L.nameH / 2 + 5, class: "name-text", "text-anchor": "middle" }, n)
     );
     svg.appendChild(g);
 
-    const oid = step.bindings[n];
     const x1 = L.nameX + L.nameW;
     const y1 = y + L.nameH / 2;
     const x2 = L.objX - 6;
@@ -227,7 +273,7 @@ export function renderDiagram(container, step, nameOrder) {
     svg.appendChild(
       s("path", {
         d: `M ${x1} ${y1} C ${x1 + 70} ${y1}, ${x2 - 70} ${y2}, ${x2} ${y2}`,
-        class: "arrow" + (changedNames.has(n) ? " changed" : ""),
+        class: "arrow" + (item.changed ? " changed" : ""),
         "marker-end": "url(#arrowhead)",
       })
     );

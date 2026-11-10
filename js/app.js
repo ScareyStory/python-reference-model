@@ -201,7 +201,7 @@ function renderObserve() {
     const step = sn.steps[state.stepIndex];
     state.maxStep = Math.max(state.maxStep, state.stepIndex);
     updateCode(codeEl, step.line);
-    renderDiagram(diagramBox, step, sn.names);
+    renderDiagram(diagramBox, step, sn.names, { scopes: sn.scopes === true });
     caption.textContent = `Step ${state.stepIndex + 1} of ${sn.steps.length}: ${step.caption}`;
     textequiv.textContent = "In words: " + describeStep(step, sn.names);
     output.textContent = "";
@@ -246,7 +246,7 @@ function evaluate() {
 
 function staticFinalDiagram(sn) {
   const box = el("div", { class: "diagram" });
-  renderDiagram(box, sn.steps[sn.steps.length - 1], sn.names);
+  renderDiagram(box, sn.steps[sn.steps.length - 1], sn.names, { scopes: sn.scopes === true });
   return box;
 }
 
