@@ -16,6 +16,9 @@ const state = {
   maxStep: 0,
   explanation: "",
   results: [], // per-snippet { id, aOk, bOk } for the end summary only
+  tests: null, // data/tests.json, or null when absent or turned off with ?tests=off
+  test: null, // the test in progress: { form, items, k, answers }
+  scores: {}, // { pre, post } score summaries, kept in memory for the comparison only
 };
 
 // ---------- small helpers ----------
@@ -105,6 +108,8 @@ function countText() {
 function showStart() {
   state.i = 0;
   state.results = [];
+  state.scores = {};
+  state.test = null;
   setView(
     el("h2", { text: "Before you start" }),
     el(
@@ -126,11 +131,16 @@ function showStart() {
         el("li", { text: "Compare your prediction with what happened, then explain the result in your own words." })
       ),
       el("p", {
-        text: "Wrong predictions are expected and are the point. They show where your mental model differs from Python's. Your answers are not graded, and your explanations stay in your browser and are not saved.",
+        text: state.tests
+          ? "Wrong predictions are expected and are the point. They show where your mental model differs from Python's. The snippets are not graded. The short pre-test and post-test show you a score at the end of each. Nothing is saved: your answers, explanations and scores stay in your browser and disappear when you close or reload the page."
+          : "Wrong predictions are expected and are the point. They show where your mental model differs from Python's. Your answers are not graded, and your explanations stay in your browser and are not saved.",
       }),
-      el("p", { text: countText() })
+      el("p", { text: countText() }),
+      state.tests
+        ? el("p", { text: `The order is: a short pre-test (${state.tests.forms.pre.items.length} questions), the snippets, then a post-test (${state.tests.forms.post.items.length} questions).` })
+        : null
     ),
-    el("button", { onclick: startSnippet, text: "Start" })
+    el("button", { onclick: state.tests ? () => showTestIntro("pre") : startSnippet, text: state.tests ? "Start the pre-test" : "Start" })
   );
 }
 
@@ -356,6 +366,136 @@ function renderFeedback(ev) {
   );
 }
 
+
+// ---------- pre-test and post-test ----------
+// One question at a time, no feedback, answers locked on Continue. Scores are computed in memory
+// and shown on the results screen. Matched items (A1-A8) make the total and the per-unit counts;
+// extra items are reported separately and never mixed into the matched total.
+
+function showTestIntro(form) {
+  const f = state.tests.forms[form];
+  const start = () => {
+    state.test = {
+      form,
+      items: shuffle(f.items).map((it) => ({ ...it, options: shuffle(it.options) })),
+      k: 0,
+      answers: [],
+    };
+    renderTestItem();
+  };
+  setView(
+    el("h2", { text: f.label }),
+    el("div", { class: "panel" }, ...f.intro.map((t) => el("p", { text: t })), el("p", { text: `There are ${f.items.length} questions.` })),
+    el("button", { text: `Start the ${f.label.toLowerCase()}`, onclick: start })
+  );
+}
+
+function renderTestItem() {
+  const t = state.test;
+  const it = t.items[t.k];
+  let picked = null;
+  const next = el("button", { text: t.k === t.items.length - 1 ? "Finish test" : "Continue", disabled: true });
+  next.addEventListener("click", () => {
+    t.answers.push({ item: it, option: it.options.find((o) => o.id === picked) });
+    if (t.k === t.items.length - 1) showTestResults();
+    else {
+      t.k++;
+      renderTestItem();
+    }
+  });
+  setView(
+    el("p", { class: "progress" }, `${state.tests.forms[t.form].label} · Question ${t.k + 1} of ${t.items.length}`, el("progress", { max: t.items.length, value: t.k + 1, "aria-label": "Progress through the test" })),
+    el("h2", { text: `Question ${t.k + 1}` }),
+    codeNode(it),
+    radioGroup("test", it.prompt, it.options, null, (id) => { picked = id; next.disabled = false; }, true),
+    el("p", { class: "hint", text: "Once you continue, your answer is locked. You will see your score at the end." }),
+    next
+  );
+}
+
+// Score summary for one finished test: matched total, matched count per unit, extras listed apart.
+function summarize(t) {
+  const matched = t.answers.filter((a) => a.item.scored === "matched");
+  const byUnit = {};
+  for (const a of matched) {
+    const u = (byUnit[a.item.unit] = byUnit[a.item.unit] || { right: 0, count: 0 });
+    u.count++;
+    if (a.option.correct) u.right++;
+  }
+  return {
+    right: matched.filter((a) => a.option.correct).length,
+    count: matched.length,
+    byUnit,
+    extras: t.answers.filter((a) => a.item.scored === "extra").map((a) => ({ label: a.item.label || a.item.id, ok: a.option.correct })),
+  };
+}
+
+function showTestResults() {
+  const t = state.test;
+  const form = t.form;
+  const f = state.tests.forms[form];
+  const sum = summarize(t);
+  state.scores[form] = sum;
+  const unitNames = state.data.units || {};
+  const units = Object.keys(sum.byUnit).sort();
+
+  const unitRows = units.map((u) =>
+    el("tr", {}, el("th", { scope: "row", text: `Unit ${u}: ${unitNames[u] || ""}` }), el("td", { text: `${sum.byUnit[u].right} of ${sum.byUnit[u].count}` }))
+  );
+  const scoreTable = el(
+    "table",
+    { class: "compare" },
+    el("thead", {}, el("tr", {}, el("th", { text: "Category" }), el("th", { text: "Score" }))),
+    el("tbody", {}, ...unitRows, el("tr", {}, el("th", { scope: "row", text: "Total" }), el("td", {}, el("strong", { text: `${sum.right} of ${sum.count}` }))))
+  );
+
+  const extras = sum.extras.length
+    ? [
+        el("h3", { text: "Extra questions (scored separately)" }),
+        el("p", { class: "hint", text: "These go a little beyond the lessons, so they are not part of the total above." }),
+        el("ul", { class: "results" }, ...sum.extras.map((x) => el("li", {}, `${x.label}: `, mark(x.ok)))),
+      ]
+    : [];
+
+  let comparison = [];
+  if (form === "post" && state.scores.pre) {
+    const pre = state.scores.pre;
+    const rows = units.map((u) =>
+      el(
+        "tr",
+        {},
+        el("th", { scope: "row", text: `Unit ${u}: ${unitNames[u] || ""}` }),
+        el("td", { text: pre.byUnit[u] ? `${pre.byUnit[u].right} of ${pre.byUnit[u].count}` : "–" }),
+        el("td", { text: `${sum.byUnit[u].right} of ${sum.byUnit[u].count}` })
+      )
+    );
+    comparison = [
+      el("h3", { text: "Pre-test and post-test on the same ideas" }),
+      el(
+        "table",
+        { class: "compare" },
+        el("thead", {}, el("tr", {}, el("th", { text: "Category" }), el("th", { text: "Pre-test" }), el("th", { text: "Post-test" }))),
+        el("tbody", {}, ...rows, el("tr", {}, el("th", { scope: "row", text: "Total" }), el("td", { text: `${pre.right} of ${pre.count}` }), el("td", {}, el("strong", { text: `${sum.right} of ${sum.count}` }))))
+      ),
+      el("p", { class: "hint", text: "The two tests use different code for each idea, so this compares understanding, not memory of the questions." }),
+    ];
+  }
+
+  const action =
+    form === "pre"
+      ? el("button", { text: "Begin the snippets", onclick: startSnippet })
+      : el("button", { text: "Start over", onclick: showStart });
+
+  setView(
+    el("h2", { text: `${f.label} results` }),
+    el("p", { text: "This score is not saved. It disappears when you close or reload the page." }),
+    scoreTable,
+    ...extras,
+    ...comparison,
+    action
+  );
+}
+
 // A mark that does not rely on colour alone: symbol + word.
 function mark(ok) {
   return el("span", { class: ok ? "ok" : "no", text: ok ? "✓ Correct" : "✗ Incorrect" });
@@ -403,7 +543,9 @@ function showDone() {
     el("h2", { text: groups.length > 1 ? "All units complete" : "Unit complete" }),
     el("p", { text: "Here is how your predictions compare with how Python actually behaves. This summary is not saved." }),
     ...sections,
-    el("button", { text: "Start over", onclick: showStart })
+    state.tests
+      ? el("button", { text: "Take the post-test", onclick: () => showTestIntro("post") })
+      : el("button", { text: "Start over", onclick: showStart })
   );
 }
 
@@ -414,6 +556,15 @@ async function boot() {
     const res = await fetch("./data/snippets.json");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     state.data = await res.json();
+    // Tests are optional: ?tests=off, or a missing data/tests.json, gives the lessons alone.
+    if (new URLSearchParams(location.search).get("tests") !== "off") {
+      try {
+        const tr = await fetch("./data/tests.json");
+        if (tr.ok) state.tests = await tr.json();
+      } catch (_) {
+        state.tests = null;
+      }
+    }
     showStart();
   } catch (err) {
     setView(

@@ -104,6 +104,7 @@ legend { font-weight: 600; padding: 0 6px; }
 .option input { margin-top: 6px; width: 18px; height: 18px; flex: none; }
 .option label { cursor: pointer; }
 .option code, .output code, td code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.option label code { white-space: pre-wrap; }
 
 button {
   font: inherit;

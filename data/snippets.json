@@ -14,7 +14,8 @@
     "A6": "Calling a string method like s.upper() changes s.",
     "A7": "x += 1 or s += 'a' changes the existing int or string.",
     "A8": "a += [1] and a = a + [1] do the same thing to a list.",
-    "A9": "A tuple can never change, including what is inside it."
+    "A9": "A tuple can never change, including what is inside it.",
+    "A10": "A default value like items=[] is created fresh each time the function is called."
   },
   "prompts": {
     "explainMismatch": "In your own words, why did it behave this way?",
@@ -2617,8 +2618,8 @@
         "correct": "Right. The parameter items is another name for a's list, so the append changed the list that a sees.",
         "byTag": {
           "A4": {
-            "thought": "You may have thought the function gets its own copy of a's list, so the append would not reach a.",
-            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "thought": "You may have thought the function gets its own copy of a's list, so the append would not affect a.",
+            "why": "Passing a python list into a function can feel like handing over a copy, especially given that the function has its own name for the list.",
             "model": "The parameter items is just another name for the same list. There is no copy, so the append changes the list that a points to."
           }
         }
@@ -2878,7 +2879,7 @@
         "byTag": {
           "A4": {
             "thought": "You may have thought the function works on its own copy of the list, so the change to the first cell would not reach a.",
-            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "why": "Passing a python list into a function can feel like handing over a copy, especially given that the function has its own name for the list.",
             "model": "The parameter items is another name for the list that a and b point to. No copy is made, so changing items[0] changes the one shared list."
           }
         }
@@ -3190,7 +3191,7 @@
         "byTag": {
           "A4": {
             "thought": "You may have thought each call works on its own copy of the list, so neither call could change a.",
-            "why": "Handing a value to a function can feel like handing over a photocopy, and the function even has its own name for it.",
+            "why": "Passing a python list into a function can feel like handing over a copy, especially given that the function has its own name for the list.",
             "model": "Each call gets another name for the same list. There is no copy, so both appends show up through a, and the second call sees the list the first call made longer."
           }
         }
